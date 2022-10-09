@@ -1,4 +1,7 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
+import { Request } from 'express'
+import { GetCurrentUser, Public } from 'src/common/decorators';
+import { AtGuard, RtGuard } from 'src/common/guards';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto';
 import { Tokens } from './types';
@@ -7,12 +10,14 @@ import { Tokens } from './types';
 export class AuthController {
     constructor(private authService: AuthService) { }
 
+    @Public()
     @Post('local/singup')
     @HttpCode(HttpStatus.CREATED)
     singupLocal(@Body() dto: AuthDto): Promise<Tokens> {
         return this.authService.singupLocal(dto);
     }
 
+    @Public()
     @Post('local/singin')
     @HttpCode(HttpStatus.OK)
     singinLocal(@Body() dto: AuthDto): Promise<Tokens> {
@@ -21,13 +26,15 @@ export class AuthController {
 
     @Post('logout')
     @HttpCode(HttpStatus.OK)
-    logout() {
-        // return this.authService.logout();
+    logout(@GetCurrentUser('sub') userId: number) {
+        return this.authService.logout(userId);
     }
 
+    @Public()
+    @UseGuards(RtGuard)
     @Post('refresh')
     @HttpCode(HttpStatus.OK)
-    refreshTokens() {
-        // return this.authService.refreshTokens();
+    refreshTokens(@GetCurrentUser('sub') userId: number, @GetCurrentUser('refreshToken') rt: string) {
+        return this.authService.refreshTokens(userId, rt);
     }
 }
