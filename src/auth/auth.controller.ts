@@ -7,27 +7,23 @@ import { Tokens } from './types';
 export class AuthController {
     constructor(private authService: AuthService) { }
 
-    @Get('/')
-    auth() {
-        return 'Hello auth';
-    }
-    @Post('/local/singup')
-    singup_local(@Body() dto: AuthDto): Promise<Tokens> {
-        this.authService.singup_local(dto);
+    @Post('local/singup')
+    singupLocal(@Body() dto: AuthDto): Promise<Tokens> {
+        return this.authService.singupLocal(dto);
     }
 
-    @Post('/local/singin')
-    singin_local() {
-        this.authService.singin_local();
+    @Post('local/singin')
+    singinLocal(@Body() dto: AuthDto): Promise<Tokens> {
+        return this.authService.singinLocal(dto);
     }
 
-    @Post('/logout')
+    @Post('logout')
     logout() {
-        this.authService.logout();
+        return this.authService.logout();
     }
 
-    @Post('/refresh')
+    @Post('refresh')
     refreshTokens() {
-        this.authService.refreshTokens();
+        return this.authService.refreshTokens();
     }
 }
