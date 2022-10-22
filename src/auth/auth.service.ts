@@ -95,7 +95,7 @@ export class AuthService {
                     email,
                 },
                 {
-                    secret: 'bulochka',
+                    secret: process.env.AT_SECRET_KEY,
                     expiresIn: 60 * 15,
                 }
             ),
@@ -105,7 +105,7 @@ export class AuthService {
                     email,
                 },
                 {
-                    secret: 'bulochka-rt',
+                    secret: process.env.RT_SECRET_KEY,
                     expiresIn: 60 * 60 * 24 * 15,
                 }
             )
