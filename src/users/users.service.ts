@@ -6,6 +6,6 @@ export class UsersService {
     constructor(private prisma: PrismaService) { }
 
     async getAllUsers() {
-        return await this.prisma.user.findMany({ select: { email: true } });
+        return await this.prisma.user.findMany({ select: { nickname: true } });
     }
 }
