@@ -20,7 +20,7 @@ export class AuthService {
     });
 
     const tokens = await this.getTokens(newUser.id, newUser.email);
-    await this.updateRtHash(newUser.id, tokens.refresh_token);
+    await this.updateRtHash(newUser.id, tokens.RefreshToken);
     return tokens;
   }
 
@@ -38,7 +38,7 @@ export class AuthService {
     if (!passwordMathes) throw new ForbiddenException('Access Denied');
 
     const tokens = await this.getTokens(user.id, user.email);
-    await this.updateRtHash(user.id, tokens.refresh_token);
+    await this.updateRtHash(user.id, tokens.RefreshToken);
     return tokens;
   }
 
@@ -69,7 +69,7 @@ export class AuthService {
     if (!rtMatcher) throw new ForbiddenException('Access Denied');
 
     const tokens = await this.getTokens(user.id, user.email);
-    await this.updateRtHash(user.id, tokens.refresh_token);
+    await this.updateRtHash(user.id, tokens.RefreshToken);
     return tokens;
   }
 
@@ -114,8 +114,8 @@ export class AuthService {
     ]);
 
     return {
-      access_token: at,
-      refresh_token: rt,
+      AccessToken: at,
+      RefreshToken: rt,
     };
   }
 }

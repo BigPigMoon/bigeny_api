@@ -6,10 +6,12 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
-  providers: [{
-    provide: APP_GUARD,
-    useClass: AtGuard,
-  }],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AtGuard,
+    },
+  ],
   imports: [AuthModule, PrismaModule, UsersModule],
 })
-export class AppModule { }
+export class AppModule {}
