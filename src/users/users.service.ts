@@ -5,7 +5,17 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async getAllUsers() {
-    return await this.prisma.user.findMany({ select: { nickname: true } });
+  async getAllUsers(self_id: number) {
+    return await this.prisma.user.findMany({
+      where: { NOT: { id: self_id } },
+      select: { nickname: true, id: true },
+    });
+  }
+
+  async getUserById(id: number) {
+    return await this.prisma.user.findFirst({
+      where: { id: id },
+      select: { nickname: true },
+    });
   }
 }
