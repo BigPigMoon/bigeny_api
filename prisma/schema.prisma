@@ -15,6 +15,7 @@ model User {
   hash      String
   hashedRt  String?
   nickname  String   @unique
+  avatarImg String?
 
   dialogs Dialog[]
 
