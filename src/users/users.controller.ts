@@ -1,8 +1,10 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Res,
   StreamableFile,
@@ -17,6 +19,7 @@ import { diskStorage } from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import { extname, join } from 'path';
 import { createReadStream } from 'fs';
+import { UpdateUserDto } from './dto/updateUser.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -67,6 +70,11 @@ export class UsersController {
   async downloadAvatar(@Param('img_url') img_url: string, @Res() res) {
     const file = createReadStream(join('./uploads/avatars', img_url));
     file.pipe(res);
+  }
+
+  @Patch('/changeNickname')
+  async updateNickname(@GetCurrentUser('sub') id: number, @Body() body: UpdateUserDto) {
+    return this.usersService.updateNickname(id, body);
   }
 
   @ApiOperation({ summary: 'Get some user by id' })
