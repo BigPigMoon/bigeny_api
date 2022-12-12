@@ -10,5 +10,5 @@ export class MessageDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  text: string;
+  content: string;
 }

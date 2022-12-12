@@ -8,36 +8,108 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  email     String   @unique
-  hash      String
-  hashedRt  String?
-  nickname  String   @unique
-  avatarImg String?
-
-  dialogs Dialog[]
+  id         Int          @id @default(autoincrement())
+  createdAt  DateTime     @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime     @updatedAt @db.Timestamptz(3)
+  email      String       @unique
+  hash       String
+  hashedRt   String?
+  nickname   String       @unique
+  avatar     String?
+  background String?
+  channel    Channel[]
+  dialogs    Dialog[]
+  subribe    Subsribe[]
+  message    Message[]
+  readStatus ReadStatus[]
 
   @@map("users")
 }
 
 model Dialog {
-  id       Int       @id @default(autoincrement())
-  readed   Boolean   @default(true)
-  users    User[]
-  messages Message[]
+  id         Int          @id @default(autoincrement())
+  avatar     String?
+  createdAt  DateTime     @default(now()) @db.Timestamptz(3)
+  name       String       @unique
+  updatedAt  DateTime     @updatedAt @db.Timestamptz(3)
+  users      User[]
+  message    Message[]
+  readStatus ReadStatus[]
 
   @@map("dialogs")
 }
 
 model Message {
-  id       Int      @id @default(autoincrement())
-  date     DateTime @default(now())
-  text     String
-  from_id  Int
-  dialog   Dialog?  @relation(fields: [dialogId], references: [id])
-  dialogId Int?
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  image     String?
+  dialogId  Int
+  ownerId   Int
+  dialog    Dialog   @relation(fields: [dialogId], references: [id])
+  owner     User     @relation(fields: [ownerId], references: [id])
 
   @@map("messages")
+}
+
+model ReadStatus {
+  readed   Boolean @default(true)
+  dialogId Int
+  userId   Int
+  dialog   Dialog  @relation(fields: [dialogId], references: [id])
+  user     User    @relation(fields: [userId], references: [id])
+
+  @@id([dialogId, userId])
+  @@map("readStatuses")
+}
+
+model Channel {
+  id          Int        @id @default(autoincrement())
+  createdAt   DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime   @updatedAt @db.Timestamptz(3)
+  avatar      String?
+  name        String     @unique
+  description String?
+  ownerId     Int
+  owner       User       @relation(fields: [ownerId], references: [id])
+  posts       Post[]
+  subribers   Subsribe[]
+
+  @@map("channels")
+}
+
+model Subsribe {
+  channelId Int
+  userId    Int
+  channle   Channel @relation(fields: [channelId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+
+  @@id([channelId, userId])
+  @@map("subsribes")
+}
+
+model Post {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
+  rate      Int       @default(0)
+  content   String
+  image     String?
+  channelId Int
+  comments  Comment[]
+  channel   Channel   @relation(fields: [channelId], references: [id])
+
+  @@map("posts")
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  content   String
+  postId    Int
+  post      Post     @relation(fields: [postId], references: [id])
+
+  @@map("comments")
 }

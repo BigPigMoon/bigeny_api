@@ -5,6 +5,8 @@ import { AtGuard } from './common/guards';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { MessagesModule } from './messages/messages.module';
+import { StoreController } from './store/store.controller';
+import { StoreModule } from './store/store.module';
 
 @Module({
   providers: [
@@ -13,6 +15,7 @@ import { MessagesModule } from './messages/messages.module';
       useClass: AtGuard,
     },
   ],
-  imports: [AuthModule, PrismaModule, UsersModule, MessagesModule],
+  imports: [AuthModule, PrismaModule, UsersModule, MessagesModule, StoreModule],
+  controllers: [StoreController],
 })
 export class AppModule {}

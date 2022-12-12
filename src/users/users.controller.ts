@@ -4,10 +4,9 @@ import {
   Get,
   Param,
   ParseIntPipe,
-  Patch,
   Post,
+  Put,
   Res,
-  StreamableFile,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -16,70 +15,51 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { GetCurrentUser, Public } from 'src/common/decorators';
 import { UsersService } from './users.service';
 import { diskStorage } from 'multer';
-import { v4 as uuidv4 } from 'uuid';
+
 import { extname, join } from 'path';
 import { createReadStream } from 'fs';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { UserOutput } from './types';
 
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
-  constructor(private usersService: UsersService) { }
-
-  @ApiOperation({ summary: 'Get all users from database' })
-  @Get('/')
-  getAllUsers() {
-    return this.usersService.getAllUsers(0);
-  }
+  constructor(private usersService: UsersService) {}
 
   @ApiOperation({
     summary: 'Get all users from database without user from request',
   })
-  @Get('/notme')
-  getAllUsersWithOutMe(@GetCurrentUser('sub') self_id: number) {
+  @Get('/')
+  getAllUsersWithOutMe(
+    @GetCurrentUser('sub') self_id: number,
+  ): Promise<UserOutput[]> {
     return this.usersService.getAllUsers(self_id);
   }
 
   @Get('/me')
-  getMe(@GetCurrentUser('sub') id: number) {
+  getMe(@GetCurrentUser('sub') id: number): Promise<UserOutput> {
     return this.usersService.getMe(id);
   }
 
-  @Post('/uploadAvatar')
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: diskStorage({
-        destination: './uploads/avatars',
-        filename(_, file, callback) {
-          const filename = uuidv4();
-          callback(null, `${filename}${extname(file.originalname)}`);
-        },
-      }),
-    }),
-  )
-  uploadUserPic(
+  @Put('/updateAvatar')
+  updateAvatar(
     @GetCurrentUser('sub') id: number,
-    @UploadedFile() file: Express.Multer.File,
+    @Body() body: { filename: string },
   ) {
-    console.log(file);
-    return this.usersService.uploadAvatar(id, file);
+    return this.usersService.updateAvatar(id, body.filename);
   }
 
-  @Public()
-  @Get('/downloadAvatar/:img_url')
-  async downloadAvatar(@Param('img_url') img_url: string, @Res() res) {
-    const file = createReadStream(join('./uploads/avatars', img_url));
-    file.pipe(res);
-  }
-
-  @Patch('/changeNickname')
-  async updateNickname(@GetCurrentUser('sub') id: number, @Body() body: UpdateUserDto) {
-    return this.usersService.updateNickname(id, body);
+  @Put('/changeNickname')
+  async updateNickname(
+    @GetCurrentUser('sub') id: number,
+    @Body() dto: UpdateUserDto,
+  ): Promise<UserOutput> {
+    return this.usersService.updateNickname(id, dto);
   }
 
   @ApiOperation({ summary: 'Get some user by id' })
   @Get('/:id')
-  getUserById(@Param('id', ParseIntPipe) id: number) {
+  getUserById(@Param('id', ParseIntPipe) id: number): Promise<UserOutput> {
     return this.usersService.getUserById(id);
   }
 }

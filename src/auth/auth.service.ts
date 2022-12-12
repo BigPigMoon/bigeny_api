@@ -57,7 +57,6 @@ export class AuthService {
   }
 
   async refreshTokens(userId: number, rt: string) {
-    console.log(userId, rt);
     const user = await this.prisma.user.findUnique({
       where: {
         id: userId,
