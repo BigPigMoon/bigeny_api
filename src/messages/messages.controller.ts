@@ -7,10 +7,8 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Dialog } from '@prisma/client';
-import { GetCurrentUser, Public } from 'src/common/decorators';
+import { GetCurrentUser } from 'src/common/decorators';
 import { CreateDialogDto, MessageDto } from './dto';
-import { OutputDialogDto } from './dto/outputDialog.dto';
 import { MessagesService } from './messages.service';
 
 @ApiTags('messages')

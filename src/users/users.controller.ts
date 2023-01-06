@@ -49,6 +49,14 @@ export class UsersController {
     return this.usersService.updateAvatar(id, body.filename);
   }
 
+  @Put('updateDeviceToken')
+  updateDeviceToken(
+    @GetCurrentUser('sub') id: number,
+    @Body() body: { deviceToken: string },
+  ) {
+    this.usersService.updateDeviceToken(id, body.deviceToken);
+  }
+
   @Put('/changeNickname')
   async updateNickname(
     @GetCurrentUser('sub') id: number,

@@ -12,8 +12,7 @@ import { createReadStream } from 'fs';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import { Public } from 'src/common/decorators';
-import { v4 as uuidv4 } from 'uuid';
-
+import { randomUUID } from 'crypto';
 @Controller('store')
 export class StoreController {
   @Post('/upload')
@@ -22,7 +21,7 @@ export class StoreController {
       storage: diskStorage({
         destination: './uploads',
         filename(_, file, callback) {
-          const filename = uuidv4();
+          const filename = randomUUID();
           callback(null, `${filename}${extname(file.originalname)}`);
         },
       }),

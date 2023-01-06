@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { Dialog, Message, User } from '@prisma/client';
-import { connect } from 'http2';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateDialogDto, MessageDto } from './dto';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
+import { FcmService } from 'nestjs-fcm';
 
 @Injectable()
 export class MessagesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly fcmService: FcmService,
+  ) {}
 
   async getDialogs(id: number) {
     const dialogs: (Dialog & { users: User[]; message: Message[] })[] =
@@ -87,14 +90,14 @@ export class MessagesService {
     };
   }
 
-  async getMessages(userid: number, dialogId: number) {
+  async getMessages(userId: number, dialogId: number) {
     const ret = await this.prisma.message.findMany({
       where: { dialogId: dialogId },
       orderBy: { createdAt: 'asc' },
       select: { id: true, content: true, createdAt: true, ownerId: true },
     });
     await this.prisma.readStatus.update({
-      where: { dialogId_userId: { userId: userid, dialogId: dialogId } },
+      where: { dialogId_userId: { userId: userId, dialogId: dialogId } },
       data: { readed: true },
     });
 
@@ -130,7 +133,7 @@ export class MessagesService {
           }
         }
       }
-      name = uuidv4();
+      name = randomUUID();
     }
 
     const res = await this.prisma.dialog.create({
@@ -169,6 +172,8 @@ export class MessagesService {
       include: { owner: true, dialog: true },
     });
 
+    if (message == null) return false;
+
     for (let i = 0; i < dialog.users.length; i++) {
       if (dialog.users[i].id === id) continue;
       await this.prisma.readStatus.update({
@@ -184,7 +189,44 @@ export class MessagesService {
       });
     }
 
-    if (message == null) return false;
+    const { nickname } = await this.prisma.user.findUnique({
+      where: { id: id },
+      select: { nickname: true },
+    });
+
+    let asdf = dialog.users
+      .map((user: User) => {
+        if (user.id != id) {
+          return user.deviceToken;
+        }
+        return undefined;
+      })
+      .filter((user) => {
+        return user !== undefined;
+      })
+      .filter((user) => {
+        return user !== null;
+      });
+
+    if (asdf.length != 0) {
+      this.fcmService.sendNotification(
+        dialog.users
+          .map((user: User) => {
+            if (user.id != id) {
+              return user.deviceToken;
+            }
+          })
+          .filter((user) => {
+            return user !== undefined;
+          }),
+        {
+          notification: { title: `${nickname}`, body: `${dto.content}` },
+          data: { dialogId: dialog.id.toString() },
+        },
+        false,
+      );
+    }
+
     return true;
   }
 }

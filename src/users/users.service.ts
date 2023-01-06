@@ -29,6 +29,13 @@ export class UsersService {
     });
   }
 
+  async updateDeviceToken(id: number, token: string) {
+    await this.prisma.user.update({
+      where: { id: id },
+      data: { deviceToken: token },
+    });
+  }
+
   async getAvatar(id: number): Promise<string> {
     const user = await this.prisma.user.findUnique({ where: { id: id } });
     return user.avatar;

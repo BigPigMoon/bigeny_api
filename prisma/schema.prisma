@@ -8,20 +8,22 @@ datasource db {
 }
 
 model User {
-  id         Int          @id @default(autoincrement())
-  createdAt  DateTime     @default(now()) @db.Timestamptz(3)
-  updatedAt  DateTime     @updatedAt @db.Timestamptz(3)
-  email      String       @unique
-  hash       String
-  hashedRt   String?
-  nickname   String       @unique
-  avatar     String?
-  background String?
-  channel    Channel[]
-  dialogs    Dialog[]
-  subribe    Subsribe[]
-  message    Message[]
-  readStatus ReadStatus[]
+  id          Int          @id @default(autoincrement())
+  createdAt   DateTime     @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime     @updatedAt @db.Timestamptz(3)
+  email       String       @unique
+  hash        String
+  hashedRt    String?
+  nickname    String       @unique
+  avatar      String?
+  background  String?
+  deviceToken String?
+  channel     Channel[]
+  dialogs     Dialog[]
+  subribe     Subsribe[]
+  message     Message[]
+  readStatus  ReadStatus[]
+  rate        Rate[]
 
   @@map("users")
 }
@@ -93,14 +95,25 @@ model Post {
   id        Int       @id @default(autoincrement())
   createdAt DateTime  @default(now()) @db.Timestamptz(3)
   updatedAt DateTime  @updatedAt @db.Timestamptz(3)
-  rate      Int       @default(0)
   content   String
   image     String?
   channelId Int
   comments  Comment[]
   channel   Channel   @relation(fields: [channelId], references: [id])
+  rate      Rate[]
 
   @@map("posts")
+}
+
+model Rate {
+  user     User    @relation(fields: [userId], references: [id])
+  userId   Int
+  post     Post    @relation(fields: [postId], references: [id])
+  positive Boolean
+  postId   Int
+
+  @@id([userId, postId])
+  @@map("rate")
 }
 
 model Comment {

@@ -4,6 +4,7 @@ import { SingupDto, SinginDto } from './dto';
 import * as bcrypt from 'bcrypt';
 import { Tokens } from './types';
 import { JwtService } from '@nestjs/jwt';
+import { FcmService } from 'nestjs-fcm/dist/services/fcm.service';
 
 @Injectable()
 export class AuthService {
@@ -52,6 +53,7 @@ export class AuthService {
       },
       data: {
         hashedRt: null,
+        deviceToken: null,
       },
     });
   }
