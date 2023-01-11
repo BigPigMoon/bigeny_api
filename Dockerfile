@@ -19,6 +19,7 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/tsconfig*.json ./
 COPY --from=builder /app/prisma ./prisma
+COPY --from=build /app/firebase.spec.json ./
 
 EXPOSE 3000
 CMD [ "yarn", "start:prisma:dev"]
