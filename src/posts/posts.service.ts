@@ -22,22 +22,59 @@ export class PostsService {
         image: dto.image,
         channel: { connect: { id: dto.channelId } },
       },
-      include: { channel: true },
+      select: {
+        id: true,
+        createdAt: true,
+        content: true,
+        image: true,
+        channelId: true,
+      },
     });
   }
 
   async getPostsFromChannel(cid: number) {
     return await this.prisma.post.findMany({
       where: { channel: { id: cid } },
-      include: { channel: true },
+      select: {
+        id: true,
+        createdAt: true,
+        content: true,
+        image: true,
+        channelId: true,
+      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   async getAllPosts() {
-    return await this.prisma.post.findMany();
+    return await this.prisma.post.findMany({
+      select: {
+        id: true,
+        createdAt: true,
+        content: true,
+        image: true,
+        channelId: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getPostById(id: number) {
+    return await this.prisma.post.findUnique({
+      where: { id: id },
+      select: {
+        id: true,
+        createdAt: true,
+        content: true,
+        image: true,
+        channelId: true,
+      },
+    });
   }
 
   async getPostFromSubscribesChannel(uid: number) {
+    // TODO: and mine posts also
+
     const channelIds: number[] = (
       await this.prisma.subsribe.findMany({
         where: { user: { id: uid } },
@@ -49,6 +86,14 @@ export class PostsService {
 
     return await this.prisma.post.findMany({
       where: { channel: { id: { in: channelIds } } },
+      select: {
+        id: true,
+        createdAt: true,
+        content: true,
+        image: true,
+        channelId: true,
+      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -92,23 +137,28 @@ export class PostsService {
     return false;
   }
 
-  async getPostRate(pid: number): Promise<number> {
-    const postRate = (
-      await this.prisma.rate.findMany({
-        where: { postId: pid },
-        select: { positive: true },
-      })
-    ).map((val) => {
-      return val.positive;
+  async getPostRate(
+    uid: number,
+    pid: number,
+  ): Promise<{ rate: number; userRate: number }> {
+    const postRate = await this.prisma.rate.findMany({
+      where: { postId: pid },
+      select: { positive: true, userId: true },
     });
 
     let rate = 0;
+    let userRate = 0;
 
-    postRate.forEach((element) => {
-      if (element) rate++;
-      else rate--;
+    postRate.forEach((element: { positive: boolean; userId: number }) => {
+      if (element.positive) {
+        if (element.userId === uid) userRate++;
+        rate++;
+      } else {
+        if (element.userId === uid) userRate--;
+        rate--;
+      }
     });
 
-    return rate;
+    return { rate: rate, userRate: userRate };
   }
 }

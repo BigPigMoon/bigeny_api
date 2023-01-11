@@ -16,7 +16,6 @@ export class ChannelsController {
 
   @Get('/subs')
   getSubsChannels(@GetCurrentUser('sub') uid: number) {
-    console.log(uid);
     return this.channelsService.getSubsChannels(uid);
   }
 
@@ -24,7 +23,7 @@ export class ChannelsController {
   createChannel(
     @GetCurrentUser('sub') uid: number,
     @Body() dto: CreateChannelDto,
-  ) {
+  ): Promise<boolean> {
     return this.channelsService.createChannel(uid, dto);
   }
 
@@ -39,10 +38,10 @@ export class ChannelsController {
   }
 
   @Post('/sub/:id')
-  subscribeOnChannel(
+  subUnsubOnChannel(
     @GetCurrentUser('sub') uid: number,
     @Param('id', ParseIntPipe) cid: number,
   ): Promise<boolean> {
-    return this.channelsService.subscribeOnChannel(uid, cid);
+    return this.channelsService.subUnsubOnChannel(uid, cid);
   }
 }
