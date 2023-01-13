@@ -51,6 +51,7 @@ export class MessagesService {
               .sort((a, b) => b.createAt.valueOf() - a.createAt.valueOf()),
             avatar: avatar,
             isReaded: readed.readed,
+            count: element.users.length,
           };
         },
       ),
@@ -64,7 +65,7 @@ export class MessagesService {
       include: { users: true, message: true },
     });
     if (dialog == null) return null;
-    let member: boolean = false;
+    let member = false;
     for (let i = 0; i < dialog.users.length; i++) {
       if (dialog.users[i].id === userId) {
         member = true;
@@ -87,6 +88,7 @@ export class MessagesService {
       id: dialog.id,
       name: name,
       avatar: avatar,
+      count: dialog.users.length,
     };
   }
 
@@ -112,7 +114,7 @@ export class MessagesService {
       return false;
     }
 
-    let users: { id: number }[] = dto.users.map((e: number) => {
+    const users: { id: number }[] = dto.users.map((e: number) => {
       return { id: e };
     });
     users.push({ id: self_id });
@@ -147,7 +149,7 @@ export class MessagesService {
       include: { users: true },
     });
 
-    let usersReaded: { dialogId: number; userId: number }[] = dto.users.map(
+    const usersReaded: { dialogId: number; userId: number }[] = dto.users.map(
       (e: number) => {
         return { dialogId: res.id, userId: e };
       },
@@ -194,7 +196,7 @@ export class MessagesService {
       select: { nickname: true },
     });
 
-    let asdf = dialog.users
+    const asdf = dialog.users
       .map((user: User) => {
         if (user.id != id) {
           return user.deviceToken;
@@ -208,23 +210,27 @@ export class MessagesService {
         return user !== null;
       });
 
-    if (asdf.length != 0) {
-      this.fcmService.sendNotification(
-        dialog.users
-          .map((user: User) => {
-            if (user.id != id) {
-              return user.deviceToken;
-            }
-          })
-          .filter((user) => {
-            return user !== undefined;
-          }),
-        {
-          notification: { title: `${nickname}`, body: `${dto.content}` },
-          data: { dialogId: dialog.id.toString() },
-        },
-        false,
-      );
+    try {
+      if (asdf.length != 0) {
+        this.fcmService.sendNotification(
+          dialog.users
+            .map((user: User) => {
+              if (user.id != id) {
+                return user.deviceToken;
+              }
+            })
+            .filter((user) => {
+              return user !== undefined;
+            }),
+          {
+            notification: { title: `${nickname}`, body: `${dto.content}` },
+            data: { dialogId: dialog.id.toString() },
+          },
+          false,
+        );
+      }
+    } catch (e) {
+      console.log(e);
     }
 
     return true;
