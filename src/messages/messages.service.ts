@@ -125,19 +125,22 @@ export class MessagesService {
     if (users.length == 2) {
       const dialogs1 = await this.prisma.dialog.findMany({
         where: { users: { some: { id: users[0].id } } },
+        include: { users: true },
       });
 
-      const dialogs2 = await this.prisma.dialog.findMany({
-        where: { users: { some: { id: users[1].id } } },
-      });
+      for (let index = 0; index < dialogs1.length; index++) {
+        const elem = dialogs1[index];
 
-      for (let i = 0; i < dialogs1.length; i++) {
-        for (let j = 0; j < dialogs2.length; j++) {
-          if (dialogs2[j].name == dialogs1[i].name) {
+        if (elem.users.length == 2) {
+          const usersInElem = elem.users.map((e) => {
+            return e.id;
+          });
+          if (usersInElem.includes(users[0].id)) {
             return false;
           }
         }
       }
+
       name = randomUUID();
     }
 
