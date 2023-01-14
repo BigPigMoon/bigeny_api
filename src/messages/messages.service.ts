@@ -98,10 +98,13 @@ export class MessagesService {
       orderBy: { createdAt: 'asc' },
       select: { id: true, content: true, createdAt: true, ownerId: true },
     });
-    await this.prisma.readStatus.update({
-      where: { dialogId_userId: { userId: userId, dialogId: dialogId } },
-      data: { readed: true },
-    });
+
+    if (ret.length > 0) {
+      await this.prisma.readStatus.update({
+        where: { dialogId_userId: { userId: userId, dialogId: dialogId } },
+        data: { readed: true },
+      });
+    }
 
     return ret;
   }
