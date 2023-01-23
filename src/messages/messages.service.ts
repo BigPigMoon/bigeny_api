@@ -135,7 +135,7 @@ export class MessagesService {
           const usersInElem = elem.users.map((e) => {
             return e.id;
           });
-          if (usersInElem.includes(users[0].id)) {
+          if (usersInElem.includes(users[1].id)) {
             return false;
           }
         }
