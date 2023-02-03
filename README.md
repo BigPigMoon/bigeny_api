@@ -1,6 +1,8 @@
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Данный проект является backend приложением для моего приложения.
+
+REST API было простоено на фреймворке - [Nest](https://github.com/nestjs/nest).
 
 ## Installation
 
