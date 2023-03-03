@@ -1,10 +1,10 @@
 version: '3'
 services:
   bigeny-api:
+    container_name: bigeny-api
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: bigeny-api
     restart: always
     ports:
       - 3333:3333
@@ -13,6 +13,7 @@ services:
     env_file:
       - .env
   postgres:
+    container_name: bigeny-base
     image: postgres:14
     ports:
       - 5432:5432
