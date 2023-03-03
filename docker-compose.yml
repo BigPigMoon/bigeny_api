@@ -25,5 +25,5 @@ services:
     volumes:
       - bigeny-db:/var/lib/mysql
 
-  volumes:
-    bigeny-db:
+volumes:
+  bigeny-db:
