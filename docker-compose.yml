@@ -22,9 +22,9 @@ services:
       MYSQL_PASSWORD: 'Passw0rd'
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
     ports:
-      - 3306:3306
+      - '3306:3306'
     expose:
-      - 3306
+      - '3306'
     volumes:
       - bigeny-db:/var/lib/mysql
       - './docker/db/data:/var/lib/mysql'
