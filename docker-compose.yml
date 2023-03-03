@@ -7,16 +7,25 @@ services:
     container_name: bigeny-api
     restart: always
     ports:
-      - 3000:3000
+      - 3333:3333
     depends_on:
-      - postgres
+      - database
     env_file:
       - .env
-  postgres:
-    image: postgres:14
-    ports:
-      - 5432:5432
+  database:
+    image: mysql:8
+    restart: always
     environment:
-      POSTGRES_USER: 'postgres'
-      POSTGRES_PASSWORD: 'root'
-      POSTGRES_DB: 'bigeny_api_dev'
+      MYSQL_DATABASE: 'bigeny_api_dev'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'Passw0rd'
+      MYSQL_ROOT_PASSWORD: 'root'
+    ports:
+      - 3306:3306
+    expose:
+      - 3306
+    volumes:
+      - bigeny-db:/var/lib/mysql
+
+volumes:
+  bigeny-db:
