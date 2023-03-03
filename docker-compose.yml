@@ -21,3 +21,8 @@ services:
       POSTGRES_USER: 'postgres'
       POSTGRES_PASSWORD: 'root'
       POSTGRES_DB: 'bigeny_api_dev'
+    volumes: 
+      - db:/var/lib/postgresql/data
+volumes:
+  db:
+    driver: local
