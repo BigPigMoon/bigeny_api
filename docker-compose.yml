@@ -8,24 +8,22 @@ services:
     restart: always
     ports:
       - 3333:3333
-    depends_on:
-      - database
     env_file:
       - .env
-  database:
-    image: mysql:8
-    restart: always
-    environment:
-      MYSQL_DATABASE: 'bigeny_api_dev'
-      MYSQL_USER: 'user'
-      MYSQL_PASSWORD: 'Passw0rd'
-      MYSQL_ROOT_PASSWORD: 'root'
-    ports:
-      - 3306:3306
-    expose:
-      - 3306
-    volumes:
-      - bigeny-db:/var/lib/mysql
+  # database:
+  #   image: mysql:8
+  #   restart: always
+  #   environment:
+  #     MYSQL_DATABASE: 'bigeny_api_dev'
+  #     MYSQL_USER: 'user'
+  #     MYSQL_PASSWORD: 'Passw0rd'
+  #     MYSQL_ROOT_PASSWORD: 'root'
+  #   ports:
+  #     - 3306:3306
+  #   expose:
+  #     - 3306
+  #   volumes:
+  #     - bigeny-db:/var/lib/mysql
 
-volumes:
-  bigeny-db:
+  # volumes:
+  #   bigeny-db:
