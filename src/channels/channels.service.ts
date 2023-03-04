@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateChannelDto } from './dto';
+import { ChannelType } from './types';
 
 @Injectable()
 export class ChannelsService {
@@ -25,7 +26,7 @@ export class ChannelsService {
     return true;
   }
 
-  async getChannelById(id: number) {
+  async getChannelById(id: number): Promise<ChannelType> {
     return await this.prisma.channel.findUnique({
       where: { id: id },
       select: {
@@ -39,7 +40,7 @@ export class ChannelsService {
     });
   }
 
-  async getChannels() {
+  async getChannels(): Promise<ChannelType[]> {
     return await this.prisma.channel.findMany({
       select: {
         id: true,
@@ -52,7 +53,7 @@ export class ChannelsService {
     });
   }
 
-  async getSubsChannels(uid: number) {
+  async getSubsChannels(uid: number): Promise<ChannelType[]> {
     const mine = await this.prisma.channel.findMany({
       where: { ownerId: uid },
       select: {

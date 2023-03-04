@@ -13,8 +13,14 @@ import { diskStorage } from 'multer';
 import { extname, join } from 'path';
 import { Public } from 'src/common/decorators';
 import { randomUUID } from 'crypto';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+
+@ApiTags('Store')
 @Controller('store')
 export class StoreController {
+  @ApiOperation({
+    summary: 'Upload image to server, return filepath img on server',
+  })
   @Post('/upload')
   @UseInterceptors(
     FileInterceptor('image', {
@@ -31,6 +37,7 @@ export class StoreController {
     return file.filename;
   }
 
+  @ApiOperation({ summary: 'Get image from server by img name on server' })
   @Public()
   @Get('/download/:img_url')
   async downloadAvatar(

@@ -1,27 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { UpdateUserDto } from './dto/updateUser.dto';
-import { UserOutput } from './types';
+import { UpdateUserDto } from './dto';
+import { UserType } from './types';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async getAllUsers(self_id: number): Promise<UserOutput[]> {
+  async getAllUsers(self_id: number): Promise<UserType[]> {
     return await this.prisma.user.findMany({
       where: { NOT: { id: self_id } },
       select: { nickname: true, id: true, avatar: true, email: true },
     });
   }
 
-  async getUserById(id: number): Promise<UserOutput> {
+  async getUserById(id: number): Promise<UserType> {
     return await this.prisma.user.findFirst({
       where: { id: id },
       select: { nickname: true, id: true, avatar: true, email: true },
     });
   }
 
-  async updateAvatar(id: number, filename: string): Promise<UserOutput> {
+  async updateAvatar(id: number, filename: string): Promise<UserType> {
     return await this.prisma.user.update({
       where: { id: id },
       data: { avatar: filename },
@@ -29,7 +29,7 @@ export class UsersService {
     });
   }
 
-  async updateDeviceToken(id: number, token: string) {
+  async updateDeviceToken(id: number, token: string): Promise<void> {
     await this.prisma.user.update({
       where: { id: id },
       data: { deviceToken: token },
@@ -41,7 +41,7 @@ export class UsersService {
     return user.avatar;
   }
 
-  async updateNickname(id: number, dto: UpdateUserDto): Promise<UserOutput> {
+  async updateNickname(id: number, dto: UpdateUserDto): Promise<UserType> {
     if (dto.nickname.length != 0) {
       const otherUser = await this.prisma.user.findUnique({
         where: { nickname: dto.nickname },
@@ -60,7 +60,7 @@ export class UsersService {
     }
   }
 
-  async getMe(id: number): Promise<UserOutput> {
+  async getMe(id: number): Promise<UserType> {
     return await this.prisma.user.findUnique({
       where: { id: id },
       select: {

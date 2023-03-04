@@ -6,7 +6,12 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { GetCurrentUser, Public } from 'src/common/decorators';
 import { RtGuard } from 'src/common/guards';
 import { AuthService } from './auth.service';
@@ -14,12 +19,13 @@ import { SinginDto, SingupDto } from './dto';
 import { Tokens } from './types';
 
 @ApiBearerAuth()
-@ApiTags('auth')
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @ApiOperation({ summary: 'Singup in local way' })
+  @ApiResponse({ type: Tokens })
   @Public()
   @Post('local/singup')
   @HttpCode(HttpStatus.CREATED)
@@ -28,6 +34,7 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'singin in local way' })
+  @ApiResponse({ type: Tokens })
   @Public()
   @Post('local/singin')
   @HttpCode(HttpStatus.OK)
@@ -38,6 +45,7 @@ export class AuthController {
   @ApiOperation({
     summary: 'logout from user and remove refresh token from database',
   })
+  @ApiResponse({ type: null })
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   logout(@GetCurrentUser('sub') userId: number): Promise<void> {
@@ -45,6 +53,7 @@ export class AuthController {
   }
 
   @ApiOperation({ summary: 'update refresh token in database' })
+  @ApiResponse({ type: Tokens })
   @HttpCode(HttpStatus.OK)
   @Public()
   @UseGuards(RtGuard)

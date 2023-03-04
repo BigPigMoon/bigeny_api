@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePostDto } from './dto';
+import { PostType, RateType } from './types';
 
 @Injectable()
 export class PostsService {
   constructor(private prisma: PrismaService) {}
 
-  async createPost(uid: number, dto: CreatePostDto) {
+  async createPost(uid: number, dto: CreatePostDto): Promise<PostType> {
     const channel = await this.prisma.channel.findUnique({
       where: { id: dto.channelId },
       include: { owner: true },
@@ -32,7 +33,7 @@ export class PostsService {
     });
   }
 
-  async getPostsFromChannel(cid: number) {
+  async getPostsFromChannel(cid: number): Promise<PostType[]> {
     return await this.prisma.post.findMany({
       where: { channel: { id: cid } },
       select: {
@@ -46,7 +47,7 @@ export class PostsService {
     });
   }
 
-  async getAllPosts() {
+  async getAllPosts(): Promise<PostType[]> {
     return await this.prisma.post.findMany({
       select: {
         id: true,
@@ -59,7 +60,7 @@ export class PostsService {
     });
   }
 
-  async getPostById(id: number) {
+  async getPostById(id: number): Promise<PostType> {
     return await this.prisma.post.findUnique({
       where: { id: id },
       select: {
@@ -72,9 +73,7 @@ export class PostsService {
     });
   }
 
-  async getPostFromSubscribesChannel(uid: number) {
-    // TODO: and mine posts also
-
+  async getPostFromSubscribesChannel(uid: number): Promise<PostType[]> {
     const channelIds: number[] = (
       await this.prisma.subsribe.findMany({
         where: { user: { id: uid } },
@@ -83,6 +82,17 @@ export class PostsService {
     ).map((val) => {
       return val.channelId;
     });
+
+    channelIds.push(
+      ...(
+        await this.prisma.channel.findMany({
+          where: { owner: { id: uid } },
+          select: { id: true },
+        })
+      ).map((val) => {
+        return val.id;
+      }),
+    );
 
     return await this.prisma.post.findMany({
       where: { channel: { id: { in: channelIds } } },
@@ -97,67 +107,41 @@ export class PostsService {
     });
   }
 
-  async setPostRate(
-    uid: number,
-    pid: number,
-    positive: boolean,
-  ): Promise<boolean> {
+  async setPostRate(uid: number, pid: number): Promise<boolean> {
     const rate = await this.prisma.rate.findUnique({
       where: { userId_postId: { postId: pid, userId: uid } },
+      include: { user: true, post: true },
     });
 
     if (rate) {
-      if (rate.positive === positive) {
-        await this.prisma.rate.delete({
-          where: { userId_postId: { userId: uid, postId: pid } },
-        });
-      } else {
-        await this.prisma.rate.update({
-          where: { userId_postId: { postId: pid, userId: uid } },
-          data: { positive: positive },
-        });
-      }
+      await this.prisma.rate.delete({
+        where: { userId_postId: { userId: uid, postId: pid } },
+      });
+
       return true;
+    } else {
+      const newRate = await this.prisma.rate.create({
+        data: {
+          post: { connect: { id: pid } },
+          user: { connect: { id: uid } },
+        },
+        include: { post: true, user: true },
+      });
+
+      if (newRate) return true;
     }
 
-    const post = await this.prisma.post.findUnique({ where: { id: pid } });
-    const user = await this.prisma.user.findUnique({ where: { id: uid } });
-
-    if (!post || !user) return false;
-
-    const newRate = await this.prisma.rate.create({
-      data: {
-        post: { connect: { id: pid } },
-        user: { connect: { id: uid } },
-        positive: positive,
-      },
-      include: { post: true, user: true },
-    });
-    if (newRate) return true;
     return false;
   }
 
-  async getPostRate(
-    uid: number,
-    pid: number,
-  ): Promise<{ rate: number; userRate: number }> {
-    const postRate = await this.prisma.rate.findMany({
+  async getPostRate(uid: number, pid: number): Promise<RateType> {
+    const postRates = await this.prisma.rate.findMany({
       where: { postId: pid },
-      select: { positive: true, userId: true },
+      select: { userId: true },
     });
 
-    let rate = 0;
-    let userRate = 0;
-
-    postRate.forEach((element: { positive: boolean; userId: number }) => {
-      if (element.positive) {
-        if (element.userId === uid) userRate++;
-        rate++;
-      } else {
-        if (element.userId === uid) userRate--;
-        rate--;
-      }
-    });
+    const rate = postRates.length;
+    const userRate = postRates.includes({ userId: uid });
 
     return { rate: rate, userRate: userRate };
   }

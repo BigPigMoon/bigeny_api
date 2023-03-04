@@ -9,16 +9,23 @@ import {
 import { ChannelsService } from './channels.service';
 import { GetCurrentUser } from 'src/common/decorators';
 import { CreateChannelDto } from './dto';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ChannelType } from './types';
 
+@ApiTags('Channels')
 @Controller('channels')
 export class ChannelsController {
   constructor(private channelsService: ChannelsService) {}
 
+  @ApiOperation({ summary: 'Get all channel in subscribe' })
+  @ApiResponse({ type: [ChannelType] })
   @Get('/subs')
-  getSubsChannels(@GetCurrentUser('sub') uid: number) {
+  getSubsChannels(@GetCurrentUser('sub') uid: number): Promise<ChannelType[]> {
     return this.channelsService.getSubsChannels(uid);
   }
 
+  @ApiOperation({ summary: 'Create channel' })
+  @ApiResponse({ type: Boolean })
   @Post('/create')
   createChannel(
     @GetCurrentUser('sub') uid: number,
@@ -27,16 +34,22 @@ export class ChannelsController {
     return this.channelsService.createChannel(uid, dto);
   }
 
+  @ApiOperation({ summary: 'Get channel by id' })
+  @ApiResponse({ type: ChannelType })
   @Get('/:id')
-  getChannelById(@Param('id', ParseIntPipe) id: number) {
+  getChannelById(@Param('id', ParseIntPipe) id: number): Promise<ChannelType> {
     return this.channelsService.getChannelById(id);
   }
 
+  @ApiOperation({ summary: 'Get all channels' })
+  @ApiResponse({ type: [ChannelType] })
   @Get('/')
-  getChannels() {
+  getChannels(): Promise<ChannelType[]> {
     return this.channelsService.getChannels();
   }
 
+  @ApiOperation({ summary: 'Subscribe or unsubscribe to channel' })
+  @ApiResponse({ type: Boolean })
   @Post('/sub/:id')
   subUnsubOnChannel(
     @GetCurrentUser('sub') uid: number,
