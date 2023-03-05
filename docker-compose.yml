@@ -10,6 +10,8 @@ services:
       - 3333:3333
     depends_on:
       - postgres
+    environment:
+      - DATABASE_URL=postgresql://postgres:root@norkaxomica.ru:5432/bigeny_api_dev?schema=public
     env_file:
       - .env
   postgres:

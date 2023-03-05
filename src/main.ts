@@ -14,9 +14,10 @@ async function bootstrap() {
     .addTag('bigeny')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('docs', app, document);
 
   app.useGlobalPipes(new ValidationPipe());
+  app.setGlobalPrefix('api');
 
   app.enableCors({
     credentials: true,
