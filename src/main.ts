@@ -7,22 +7,23 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.useGlobalPipes(new ValidationPipe());
+  app.setGlobalPrefix('api-bigeny');
+
+  app.enableCors({
+    credentials: false,
+    origin: true,
+  });
+
   const config = new DocumentBuilder()
     .setTitle('Begeny Docs')
     .setDescription('')
-    .setVersion('0.0.1')
+    .setVersion('1.0.0')
     .addTag('bigeny')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('api-bigeny/docs', app, document);
 
-  app.useGlobalPipes(new ValidationPipe());
-  app.setGlobalPrefix('api');
-
-  app.enableCors({
-    credentials: true,
-    origin: true,
-  });
   await app.listen(3333);
 }
 
