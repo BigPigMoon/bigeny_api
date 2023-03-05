@@ -42,7 +42,7 @@ export class AuthService {
     return tokens;
   }
 
-  async logout(userId: number) {
+  async logout(userId: number): Promise<void> {
     await this.prisma.user.updateMany({
       where: {
         id: userId,
@@ -57,7 +57,7 @@ export class AuthService {
     });
   }
 
-  async refreshTokens(userId: number, rt: string) {
+  async refreshTokens(userId: number, rt: string): Promise<Tokens> {
     const user = await this.prisma.user.findUnique({
       where: {
         id: userId,
@@ -73,7 +73,7 @@ export class AuthService {
     return tokens;
   }
 
-  async updateRtHash(userId: number, rt: string) {
+  async updateRtHash(userId: number, rt: string): Promise<void> {
     const hash = await this.hashData(rt);
     await this.prisma.user.update({
       where: {
@@ -85,7 +85,7 @@ export class AuthService {
     });
   }
 
-  hashData(data: string) {
+  hashData(data: string): Promise<string> {
     return bcrypt.hash(data, 10);
   }
 
