@@ -16,6 +16,7 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
+    .addApiKey({ type: 'http' })
     .setTitle('Begeny Docs')
     .setDescription('')
     .setVersion('1.0.0')
