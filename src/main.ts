@@ -21,7 +21,9 @@ async function bootstrap() {
     .setVersion('1.0.0')
     .addTag('bigeny')
     .build();
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, config, {
+    ignoreGlobalPrefix: true,
+  });
   SwaggerModule.setup('api-bigeny/docs', app, document);
 
   await app.listen(3333);
