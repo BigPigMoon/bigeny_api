@@ -15,7 +15,6 @@ export class CreatePostDto {
       'path of image a new post (it may be null if post does not have any image)',
     example: 'https://bigeny.ru/store/aklsjdflkjsaf.png',
   })
-  @IsString()
   image: string | null;
 
   @ApiProperty({ description: 'id of channel for new post', example: '1' })
