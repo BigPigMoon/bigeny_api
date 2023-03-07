@@ -8,10 +8,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.useGlobalPipes(new ValidationPipe());
-  app.setGlobalPrefix('api-bigeny');
+  // app.setGlobalPrefix('');
 
   app.enableCors({
-    credentials: false,
+    credentials: true,
     origin: true,
   });
 
@@ -25,7 +25,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config, {
     deepScanRoutes: true,
   });
-  SwaggerModule.setup('api-bigeny/docs', app, document);
+  SwaggerModule.setup('/docs', app, document);
 
   await app.listen(3333);
 }

@@ -11,7 +11,7 @@ services:
     depends_on:
       - postgres
     environment:
-      - DATABASE_URL=postgresql://postgres:root@norkaxomica.ru:5432/bigeny_api_dev?schema=public
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@176.126.103.27:5432/bigeny_api_dev?schema=public
     env_file:
       - .env
   postgres:
@@ -20,8 +20,8 @@ services:
     ports:
       - 5432:5432
     environment:
-      POSTGRES_USER: 'postgres'
-      POSTGRES_PASSWORD: 'root'
+      POSTGRES_USER: '${POSTGRES_USER}'
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD}'
       POSTGRES_DB: 'bigeny_api_dev'
     volumes: 
       - db:/var/lib/postgresql/data
