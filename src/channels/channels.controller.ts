@@ -30,7 +30,7 @@ export class ChannelsController {
   createChannel(
     @GetCurrentUser('sub') uid: number,
     @Body() dto: CreateChannelDto,
-  ): Promise<boolean> {
+  ): Promise<ChannelType> {
     return this.channelsService.createChannel(uid, dto);
   }
 
