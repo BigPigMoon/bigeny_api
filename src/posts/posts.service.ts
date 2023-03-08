@@ -141,7 +141,10 @@ export class PostsService {
     });
 
     const rate = postRates.length;
-    const userRate = postRates.includes({ userId: uid });
+    const userRate =
+      (await this.prisma.rate.findFirst({
+        where: { postId: pid, userId: uid },
+      })) !== null;
 
     return { rate: rate, userRate: userRate };
   }
