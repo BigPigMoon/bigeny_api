@@ -37,24 +37,27 @@ export class ChannelsController {
   @ApiOperation({ summary: 'Get channel by id' })
   @ApiResponse({ type: ChannelType })
   @Get('/:id')
-  getChannelById(@Param('id', ParseIntPipe) id: number): Promise<ChannelType> {
-    return this.channelsService.getChannelById(id);
+  getChannelById(
+    @GetCurrentUser('sub') uid: number,
+    @Param('id', ParseIntPipe) cid: number,
+  ): Promise<ChannelType> {
+    return this.channelsService.getChannelById(uid, cid);
   }
 
   @ApiOperation({ summary: 'Get all channels' })
   @ApiResponse({ type: [ChannelType] })
   @Get('/')
-  getChannels(): Promise<ChannelType[]> {
-    return this.channelsService.getChannels();
+  getChannels(@GetCurrentUser('sub') uid: number): Promise<ChannelType[]> {
+    return this.channelsService.getChannels(uid);
   }
 
   @ApiOperation({ summary: 'Subscribe or unsubscribe to channel' })
-  @ApiResponse({ type: Boolean })
+  @ApiResponse({ type: ChannelType })
   @Post('/sub/:id')
   subUnsubOnChannel(
     @GetCurrentUser('sub') uid: number,
     @Param('id', ParseIntPipe) cid: number,
-  ): Promise<boolean> {
+  ): Promise<ChannelType> {
     return this.channelsService.subUnsubOnChannel(uid, cid);
   }
 }

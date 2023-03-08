@@ -25,4 +25,7 @@ export class ChannelType {
 
   @ApiProperty({ description: 'posts of channel', type: [PostType] })
   lastPost: PostType | null;
+
+  @ApiProperty({ description: 'Subscribe on the channel', type: Boolean })
+  subscribe: boolean;
 }

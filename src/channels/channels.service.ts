@@ -34,12 +34,13 @@ export class ChannelsService {
       ownerId: newChannel.ownerId,
       name: newChannel.name,
       lastPost: null,
+      subscribe: false,
     };
   }
 
-  async getChannelById(id: number): Promise<ChannelType> {
+  async getChannelById(uid: number, cid: number): Promise<ChannelType> {
     const ret = await this.prisma.channel.findUnique({
-      where: { id: id },
+      where: { id: cid },
       select: {
         id: true,
         avatar: true,
@@ -49,6 +50,12 @@ export class ChannelsService {
         posts: { orderBy: { createdAt: 'desc' } },
       },
     });
+
+    const sub =
+      (await this.prisma.subsribe.findUnique({
+        where: { channelId_userId: { channelId: cid, userId: uid } },
+      })) !== null;
+
     return {
       id: ret.id,
       avatar: ret.avatar,
@@ -56,10 +63,11 @@ export class ChannelsService {
       ownerId: ret.ownerId,
       name: ret.name,
       lastPost: ret.posts[0],
+      subscribe: sub,
     };
   }
 
-  async getChannels(): Promise<ChannelType[]> {
+  async getChannels(uid: number): Promise<ChannelType[]> {
     const res = await this.prisma.channel.findMany({
       select: {
         id: true,
@@ -68,8 +76,10 @@ export class ChannelsService {
         ownerId: true,
         name: true,
         posts: { orderBy: { createdAt: 'desc' } },
+        subribers: { where: { userId: uid } },
       },
     });
+
     return res.map((ret) => ({
       id: ret.id,
       avatar: ret.avatar,
@@ -77,6 +87,7 @@ export class ChannelsService {
       ownerId: ret.ownerId,
       name: ret.name,
       lastPost: ret.posts[0],
+      subscribe: ret.subribers.length > 0,
     }));
   }
 
@@ -90,6 +101,7 @@ export class ChannelsService {
         ownerId: true,
         name: true,
         posts: { orderBy: { createdAt: 'desc' } },
+        subribers: { where: { userId: uid } },
       },
     });
 
@@ -100,6 +112,7 @@ export class ChannelsService {
       ownerId: val.ownerId,
       name: val.name,
       lastPost: val.posts[0],
+      subscribe: val.subribers.length > 0,
     }));
 
     const subs = await this.prisma.channel.findMany({
@@ -111,6 +124,7 @@ export class ChannelsService {
         ownerId: true,
         name: true,
         posts: { orderBy: { createdAt: 'desc' } },
+        subribers: { where: { userId: uid } },
       },
     });
 
@@ -121,18 +135,19 @@ export class ChannelsService {
       ownerId: val.ownerId,
       name: val.name,
       lastPost: val.posts[0],
+      subscribe: val.subribers.length > 0,
     }));
 
     return [...mineRet, ...subsRet];
   }
 
-  async subUnsubOnChannel(uid: number, cid: number): Promise<boolean> {
+  async subUnsubOnChannel(uid: number, cid: number): Promise<ChannelType> {
     const { ownerId } = await this.prisma.channel.findUnique({
       where: { id: cid },
       select: { ownerId: true },
     });
 
-    if (ownerId === uid) return false;
+    if (ownerId === uid) return null;
 
     const subribed = await this.prisma.subsribe.findUnique({
       where: { channelId_userId: { channelId: cid, userId: uid } },
@@ -151,6 +166,19 @@ export class ChannelsService {
       });
     }
 
-    return true;
+    const ret = await this.prisma.channel.findUnique({
+      where: { id: cid },
+      include: { posts: true, subribers: true },
+    });
+
+    return {
+      id: ret.id,
+      avatar: ret.avatar,
+      description: ret.description,
+      ownerId: ret.ownerId,
+      name: ret.name,
+      lastPost: ret.posts[0],
+      subscribe: !subribed,
+    };
   }
 }
