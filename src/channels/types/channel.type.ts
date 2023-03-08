@@ -24,5 +24,5 @@ export class ChannelType {
   name: string;
 
   @ApiProperty({ description: 'posts of channel', type: [PostType] })
-  posts: PostType[];
+  lastPost: PostType | null;
 }

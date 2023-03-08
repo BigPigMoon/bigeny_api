@@ -7,14 +7,17 @@ import { ChannelType } from './types';
 export class ChannelsService {
   constructor(private prisma: PrismaService) {}
 
-  async createChannel(uid: number, dto: CreateChannelDto): Promise<boolean> {
+  async createChannel(
+    uid: number,
+    dto: CreateChannelDto,
+  ): Promise<ChannelType> {
     const channel = await this.prisma.channel.findUnique({
       where: { name: dto.name },
     });
 
-    if (channel) return false;
+    if (channel) return null;
 
-    await this.prisma.channel.create({
+    const newChannel = await this.prisma.channel.create({
       data: {
         name: dto.name,
         avatar: dto.avatar,
@@ -23,11 +26,19 @@ export class ChannelsService {
       },
       include: { owner: true },
     });
-    return true;
+
+    return {
+      id: newChannel.id,
+      avatar: newChannel.avatar,
+      description: newChannel.description,
+      ownerId: newChannel.ownerId,
+      name: newChannel.name,
+      lastPost: null,
+    };
   }
 
   async getChannelById(id: number): Promise<ChannelType> {
-    return await this.prisma.channel.findUnique({
+    const ret = await this.prisma.channel.findUnique({
       where: { id: id },
       select: {
         id: true,
@@ -38,10 +49,18 @@ export class ChannelsService {
         posts: { orderBy: { createdAt: 'desc' } },
       },
     });
+    return {
+      id: ret.id,
+      avatar: ret.avatar,
+      description: ret.description,
+      ownerId: ret.ownerId,
+      name: ret.name,
+      lastPost: ret.posts[0],
+    };
   }
 
   async getChannels(): Promise<ChannelType[]> {
-    return await this.prisma.channel.findMany({
+    const res = await this.prisma.channel.findMany({
       select: {
         id: true,
         avatar: true,
@@ -51,10 +70,18 @@ export class ChannelsService {
         posts: { orderBy: { createdAt: 'desc' } },
       },
     });
+    return res.map((ret) => ({
+      id: ret.id,
+      avatar: ret.avatar,
+      description: ret.description,
+      ownerId: ret.ownerId,
+      name: ret.name,
+      lastPost: ret.posts[0],
+    }));
   }
 
   async getSubsChannels(uid: number): Promise<ChannelType[]> {
-    const mine = await this.prisma.channel.findMany({
+    const mines = await this.prisma.channel.findMany({
       where: { ownerId: uid },
       select: {
         id: true,
@@ -65,6 +92,15 @@ export class ChannelsService {
         posts: { orderBy: { createdAt: 'desc' } },
       },
     });
+
+    const mineRet = mines.map((val) => ({
+      id: val.id,
+      avatar: val.avatar,
+      description: val.description,
+      ownerId: val.ownerId,
+      name: val.name,
+      lastPost: val.posts[0],
+    }));
 
     const subs = await this.prisma.channel.findMany({
       where: { subribers: { some: { userId: uid } } },
@@ -78,7 +114,16 @@ export class ChannelsService {
       },
     });
 
-    return [...mine, ...subs];
+    const subsRet = subs.map((val) => ({
+      id: val.id,
+      avatar: val.avatar,
+      description: val.description,
+      ownerId: val.ownerId,
+      name: val.name,
+      lastPost: val.posts[0],
+    }));
+
+    return [...mineRet, ...subsRet];
   }
 
   async subUnsubOnChannel(uid: number, cid: number): Promise<boolean> {
