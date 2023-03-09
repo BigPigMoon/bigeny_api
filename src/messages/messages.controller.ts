@@ -30,7 +30,7 @@ export class MessagesController {
   createDialog(
     @GetCurrentUser('sub') uid: number,
     @Body() dto: CreateDialogDto,
-  ): Promise<boolean> {
+  ): Promise<DialogType> {
     return this.messageService.createDialog(uid, dto);
   }
 

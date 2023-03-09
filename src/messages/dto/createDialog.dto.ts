@@ -9,7 +9,6 @@ export class CreateDialogDto {
     description: 'path to avatar for new dialog',
     example: 'https://bigeny.ru/store/lksadjfljasd.png',
   })
-  @IsString()
   avatar: string | null;
 
   @ApiProperty({ description: 'name for new dialog', example: 'cool dialog' })

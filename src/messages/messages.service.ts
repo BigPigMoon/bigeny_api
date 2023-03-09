@@ -136,12 +136,12 @@ export class MessagesService {
     return ret;
   }
 
-  async createDialog(uid: number, dto: CreateDialogDto): Promise<boolean> {
+  async createDialog(uid: number, dto: CreateDialogDto): Promise<DialogType> {
     const dialog = await this.prisma.dialog.findUnique({
       where: { name: dto.name },
     });
     if (dialog != null) {
-      return false;
+      return null;
     }
 
     const users: { id: number }[] = dto.users.map((e: number) => {
@@ -163,7 +163,7 @@ export class MessagesService {
             return e.id;
           });
           if (usersInElem.includes(users[1].id)) {
-            return false;
+            return null;
           }
         }
       }
@@ -182,6 +182,8 @@ export class MessagesService {
       include: { users: true },
     });
 
+    if (res === null) return null;
+
     const usersReaded: { dialogId: number; userId: number }[] = dto.users.map(
       (e: number) => {
         return { dialogId: res.id, userId: e };
@@ -190,7 +192,14 @@ export class MessagesService {
     usersReaded.push({ dialogId: res.id, userId: uid });
 
     await this.prisma.readStatus.createMany({ data: usersReaded });
-    return true;
+    return {
+      id: res.id,
+      name: res.name,
+      avatar: res.avatar,
+      countOfUser: res.users.length,
+      isReaded: false,
+      lastMessage: null,
+    };
   }
 
   async send(id: number, dto: MessageDto): Promise<boolean> {
