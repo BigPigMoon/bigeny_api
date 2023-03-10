@@ -10,7 +10,7 @@ export class DialogType {
       'name of dialog (for only 2 dialog name equal like name of user)',
     example: 'cool dialog',
   })
-  name: string;
+  name: string | null;
 
   @ApiProperty({
     description: 'path to avatar of dialog',

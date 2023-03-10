@@ -25,7 +25,7 @@ export class MessagesController {
   }
 
   @ApiOperation({ summary: 'Create the dialog' })
-  @ApiResponse({ type: Boolean })
+  @ApiResponse({ type: DialogType })
   @Post('/createDialog')
   createDialog(
     @GetCurrentUser('sub') uid: number,
