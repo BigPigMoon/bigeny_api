@@ -12,4 +12,13 @@ export class MessageType {
 
   @ApiProperty({ description: 'message owner id', example: '3' })
   ownerId: number;
+
+  @ApiProperty({ description: 'name of the user', example: 'user' })
+  name: string;
+
+  @ApiProperty({
+    description: 'the user avatar of owner message',
+    example: 'http://api.bigeny.ru/store/download/sldfjsljdfladjsf.jpg',
+  })
+  avatar: string;
 }

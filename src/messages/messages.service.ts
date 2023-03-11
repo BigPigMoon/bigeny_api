@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Dialog, Message, User } from '@prisma/client';
+import { User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateDialogDto, MessageDto } from './dto';
 import { randomUUID } from 'crypto';
@@ -14,54 +14,51 @@ export class MessagesService {
   ) {}
 
   async getDialogs(uid: number): Promise<DialogType[]> {
-    const dialogs: (Dialog & { users: User[]; message: Message[] })[] =
-      await this.prisma.dialog.findMany({
-        where: { users: { some: { id: uid } } },
-        include: { message: true, users: true },
-      });
+    const dialogs = await this.prisma.dialog.findMany({
+      where: { users: { some: { id: uid } } },
+      include: { message: { include: { owner: true } }, users: true },
+    });
     const ret = await Promise.all(
-      dialogs.map(
-        async (
-          element: Dialog & { users: User[]; message: Message[] },
-        ): Promise<DialogType> => {
-          const readed = await this.prisma.readStatus.findFirst({
-            where: { dialogId: element.id, userId: uid },
-            select: { readed: true },
-          });
-          let name = element.name;
-          let avatar = element.avatar;
-          if (element.users.length == 2) {
-            if (element.users[0].id == uid) {
-              name = element.users[1].nickname;
-              avatar = element.users[1].avatar;
-            }
-            if (element.users[1].id == uid) {
-              name = element.users[0].nickname;
-              avatar = element.users[0].avatar;
-            }
+      dialogs.map(async (element): Promise<DialogType> => {
+        const readed = await this.prisma.readStatus.findFirst({
+          where: { dialogId: element.id, userId: uid },
+          select: { readed: true },
+        });
+        let name = element.name;
+        let avatar = element.avatar;
+        if (element.users.length == 2) {
+          if (element.users[0].id == uid) {
+            name = element.users[1].nickname;
+            avatar = element.users[1].avatar;
           }
+          if (element.users[1].id == uid) {
+            name = element.users[0].nickname;
+            avatar = element.users[0].avatar;
+          }
+        }
 
-          const messages: MessageType[] = element.message
-            .map((message: Message): MessageType => {
-              return {
-                id: message.id,
-                content: message.content,
-                createdAt: message.createdAt,
-                ownerId: message.ownerId,
-              };
-            })
-            .sort((a, b) => b.createdAt.valueOf() - a.createdAt.valueOf());
+        const messages: MessageType[] = element.message
+          .map((message): MessageType => {
+            return {
+              id: message.id,
+              content: message.content,
+              createdAt: message.createdAt,
+              ownerId: message.owner.id,
+              name: message.owner.nickname,
+              avatar: message.owner.avatar,
+            };
+          })
+          .sort((a, b) => b.createdAt.valueOf() - a.createdAt.valueOf());
 
-          return {
-            id: element.id,
-            name: name,
-            lastMessage: messages.length > 0 ? messages[0] : null,
-            avatar: avatar,
-            isReaded: readed.readed,
-            countOfUser: element.users.length,
-          };
-        },
-      ),
+        return {
+          id: element.id,
+          name: name,
+          lastMessage: messages.length > 0 ? messages[0] : null,
+          avatar: avatar,
+          isReaded: readed.readed,
+          countOfUser: element.users.length,
+        };
+      }),
     );
 
     return ret;
@@ -70,18 +67,26 @@ export class MessagesService {
   async getDialogById(uid: number, did: number): Promise<DialogType> {
     const dialog = await this.prisma.dialog.findUnique({
       where: { id: did },
-      include: { users: true, message: true },
+      include: {
+        users: true,
+        message: { include: { owner: true } },
+      },
     });
+
     if (dialog == null) return null;
+
     let member = false;
     for (let i = 0; i < dialog.users.length; i++) {
       if (dialog.users[i].id === uid) {
         member = true;
       }
     }
+
     if (!member) return null;
+
     let name = dialog.name;
     let avatar = dialog.avatar;
+
     if (dialog.users.length == 2) {
       if (dialog.users[0].id == uid) {
         name = dialog.users[1].nickname;
@@ -99,12 +104,14 @@ export class MessagesService {
     });
 
     const messages: MessageType[] = dialog.message
-      .map((message: Message): MessageType => {
+      .map((message): MessageType => {
         return {
           id: message.id,
           content: message.content,
           createdAt: message.createdAt,
-          ownerId: message.ownerId,
+          ownerId: message.owner.id,
+          name: message.owner.nickname,
+          avatar: message.owner.avatar,
         };
       })
       .sort((a, b) => b.createdAt.valueOf() - a.createdAt.valueOf());
@@ -123,7 +130,7 @@ export class MessagesService {
     const ret = await this.prisma.message.findMany({
       where: { dialogId: did },
       orderBy: { createdAt: 'asc' },
-      select: { id: true, content: true, createdAt: true, ownerId: true },
+      select: { id: true, content: true, createdAt: true, owner: true },
     });
 
     if (ret.length > 0) {
@@ -133,7 +140,14 @@ export class MessagesService {
       });
     }
 
-    return ret;
+    return ret.map((val) => ({
+      id: val.id,
+      content: val.content,
+      createdAt: val.createdAt,
+      ownerId: val.owner.id,
+      name: val.owner.nickname,
+      avatar: val.owner.avatar,
+    }));
   }
 
   async createDialog(uid: number, dto: CreateDialogDto): Promise<DialogType> {
@@ -202,7 +216,7 @@ export class MessagesService {
     };
   }
 
-  async send(id: number, dto: MessageDto): Promise<boolean> {
+  async send(id: number, dto: MessageDto): Promise<MessageType> {
     const dialog = await this.prisma.dialog.findUnique({
       where: { id: dto.dialogId },
       include: { users: true },
@@ -216,8 +230,9 @@ export class MessagesService {
       include: { owner: true, dialog: true },
     });
 
-    if (message == null) return false;
+    if (message == null) return null;
 
+    // update readed
     for (let i = 0; i < dialog.users.length; i++) {
       if (dialog.users[i].id === id) continue;
       await this.prisma.readStatus.update({
@@ -272,9 +287,16 @@ export class MessagesService {
         );
       }
     } catch (e) {
-      console.log(e);
+      // console.log(e);
     }
 
-    return true;
+    return {
+      id: message.id,
+      content: message.content,
+      createdAt: message.createdAt,
+      ownerId: message.owner.id,
+      name: message.owner.nickname,
+      avatar: message.owner.avatar,
+    };
   }
 }

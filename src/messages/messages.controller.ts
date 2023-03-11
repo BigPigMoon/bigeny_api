@@ -55,12 +55,12 @@ export class MessagesController {
   }
 
   @ApiOperation({ summary: 'Send message' })
-  @ApiResponse({ type: Boolean })
+  @ApiResponse({ type: MessageType })
   @Post('/send')
   send(
     @GetCurrentUser('sub') uid: number,
     @Body() dto: MessageDto,
-  ): Promise<boolean> {
+  ): Promise<MessageType> {
     return this.messageService.send(uid, dto);
   }
 }
