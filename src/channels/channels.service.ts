@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateChannelDto } from './dto';
 import { ChannelType } from './types';
@@ -15,7 +15,8 @@ export class ChannelsService {
       where: { name: dto.name },
     });
 
-    if (channel) return null;
+    if (channel)
+      throw new BadRequestException('The channel name already in use');
 
     const newChannel = await this.prisma.channel.create({
       data: {

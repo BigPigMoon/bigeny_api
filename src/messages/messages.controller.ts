@@ -63,4 +63,14 @@ export class MessagesController {
   ): Promise<MessageType> {
     return this.messageService.send(uid, dto);
   }
+
+  // @ApiOperation({ summary: 'Read the dialog' })
+  // @ApiResponse({ type: DialogType })
+  // @Post('/read/:id')
+  // readDialog(
+  //   @GetCurrentUser('sub') uid: number,
+  //   @Param('id', ParseIntPipe) did: number,
+  // ): Promise<DialogType> {
+  //   return this.messageService.readDialog(uid, did);
+  // }
 }

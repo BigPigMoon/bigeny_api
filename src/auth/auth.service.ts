@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SingupDto, SinginDto } from './dto';
 import * as bcrypt from 'bcrypt';
@@ -11,6 +15,17 @@ export class AuthService {
 
   async singupLocal(dto: SingupDto): Promise<Tokens> {
     const hash = await this.hashData(dto.password);
+
+    const findNickname = await this.prisma.user.findUnique({
+      where: { nickname: dto.nickname },
+    });
+    if (findNickname) throw new BadRequestException('Nickname already in used');
+
+    const findEmail = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+    if (findEmail) throw new BadRequestException('Email already in used');
+
     const newUser = await this.prisma.user.create({
       data: {
         nickname: dto.nickname,
@@ -31,11 +46,11 @@ export class AuthService {
       },
     });
 
-    if (!user) throw new ForbiddenException('Access Denied');
+    if (!user) throw new BadRequestException('User not found');
 
     const passwordMathes = await bcrypt.compare(dto.password, user.hash);
 
-    if (!passwordMathes) throw new ForbiddenException('Access Denied');
+    if (!passwordMathes) throw new ForbiddenException('Invalid password');
 
     const tokens = await this.getTokens(user.id, user.email);
     await this.updateRtHash(user.id, tokens.RefreshToken);

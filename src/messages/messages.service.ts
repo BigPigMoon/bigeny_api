@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateDialogDto, MessageDto } from './dto';
@@ -126,6 +126,44 @@ export class MessagesService {
     };
   }
 
+  // async readDialog(uid: number, did: number): Promise<DialogType> {
+  //   const readed = await this.prisma.readStatus.update({
+  //     where: { dialogId_userId: { userId: uid, dialogId: did } },
+  //     data: { readed: true },
+  //   });
+
+  //   const dialog = await this.prisma.dialog.findUnique({
+  //     where: { id: did },
+  //     include: {
+  //       users: true,
+  //       readStatus: true,
+  //       message: { include: { owner: true } },
+  //     },
+  //   });
+
+  //   const messages: MessageType[] = dialog.message
+  //     .map((message): MessageType => {
+  //       return {
+  //         id: message.id,
+  //         content: message.content,
+  //         createdAt: message.createdAt,
+  //         ownerId: message.owner.id,
+  //         name: message.owner.nickname,
+  //         avatar: message.owner.avatar,
+  //       };
+  //     })
+  //     .sort((a, b) => b.createdAt.valueOf() - a.createdAt.valueOf());
+
+  //   return {
+  //     id: dialog.id,
+  //     name: dialog.name,
+  //     avatar: dialog.avatar,
+  //     countOfUser: dialog.users.length,
+  //     isReaded: readed.readed,
+  //     lastMessage: messages.length > 0 ? messages[0] : null,
+  //   };
+  // }
+
   async getMessages(uid: number, did: number): Promise<MessageType[]> {
     const ret = await this.prisma.message.findMany({
       where: { dialogId: did },
@@ -155,7 +193,7 @@ export class MessagesService {
       where: { name: dto.name },
     });
     if (dialog != null) {
-      return null;
+      throw new BadRequestException('Dialog name already in use');
     }
 
     const users: { id: number }[] = dto.users.map((e: number) => {
@@ -177,7 +215,7 @@ export class MessagesService {
             return e.id;
           });
           if (usersInElem.includes(users[1].id)) {
-            return null;
+            throw new BadRequestException('Dialog already created');
           }
         }
       }
@@ -196,7 +234,7 @@ export class MessagesService {
       include: { users: true },
     });
 
-    if (res === null) return null;
+    if (res === null) throw new BadRequestException('Dialog did not create');
 
     const usersReaded: { dialogId: number; userId: number }[] = dto.users.map(
       (e: number) => {

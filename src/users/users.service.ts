@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateUserDto } from './dto';
 import { UserType } from './types';
@@ -53,10 +53,10 @@ export class UsersService {
           select: { nickname: true, id: true, avatar: true, email: true },
         });
       } else {
-        return null;
+        throw new BadRequestException('Nickname already in use');
       }
     } else {
-      return null;
+      throw new BadRequestException('Nickname already in use');
     }
   }
 
