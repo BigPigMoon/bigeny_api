@@ -3,14 +3,10 @@ import { Dialog, Message, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateDialogDto, MessageDto } from './dto';
 import { randomUUID } from 'crypto';
-import { FcmService } from 'nestjs-fcm';
 
 @Injectable()
 export class MessagesService {
-  constructor(
-    private prisma: PrismaService,
-    private readonly fcmService: FcmService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async getDialogs(id: number) {
     const dialogs: (Dialog & { users: User[]; message: Message[] })[] =
@@ -215,29 +211,6 @@ export class MessagesService {
       .filter((user) => {
         return user !== null;
       });
-
-    try {
-      if (asdf.length != 0) {
-        this.fcmService.sendNotification(
-          dialog.users
-            .map((user: User) => {
-              if (user.id != id) {
-                return user.deviceToken;
-              }
-            })
-            .filter((user) => {
-              return user !== undefined;
-            }),
-          {
-            notification: { title: `${nickname}`, body: `${dto.content}` },
-            data: { dialogId: dialog.id.toString() },
-          },
-          false,
-        );
-      }
-    } catch (e) {
-      console.log(e);
-    }
 
     return true;
   }
